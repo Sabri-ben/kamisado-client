@@ -1,6 +1,7 @@
 import socket
 import json
 import struct
+import threading
 
 SERVER_HOST = "IP_DU_PROF"
 SERVER_PORT = 3000
@@ -118,7 +119,19 @@ def choose_move(state, lives: int, errors: list):
     coups = coups_possibles(plateau, position, sorte)
     return meilleur_coup(coups, sorte, plateau)
 
+def serveur_ping():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("", MY_PORT))
+        s.listen()
+        while True:
+            conn, _ = s.accept()
+            with conn:
+                req = recevoir_message(conn)
+                if req.get("request") == "ping":
+                    envoyer_message(conn, {"response": "pong"})
 def main():
+    threading.Thread(target=serveur_ping, daemon=True).start()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         print(f"Connexion au serveur {SERVER_HOST}:{SERVER_PORT}...")
         sock.connect((SERVER_HOST, SERVER_PORT))
