@@ -9,9 +9,6 @@ from client import (
     choose_move,
 )
 
-# ──────────────────────────────────────────────
-#  Helpers
-# ──────────────────────────────────────────────
 
 BOARD_COLORS = [
     ["orange", "blue",   "purple", "pink",   "yellow", "red",    "green",  "brown"],
@@ -34,9 +31,6 @@ def poser_piece(plateau, ligne, colonne, couleur, sorte):
     return plateau
 
 
-# ──────────────────────────────────────────────
-#  Tests : ma_sorte
-# ──────────────────────────────────────────────
 
 class TestMaSorte:
     def test_joueur_0_est_dark(self):
@@ -47,10 +41,6 @@ class TestMaSorte:
         state = {"current": 1}
         assert ma_sorte(state) == "light"
 
-
-# ──────────────────────────────────────────────
-#  Tests : trouver_piece
-# ──────────────────────────────────────────────
 
 class TestTrouverPiece:
     def test_trouve_piece_existante(self):
@@ -73,9 +63,7 @@ class TestTrouverPiece:
         assert trouver_piece(plateau, "red", "light") is None
 
 
-# ──────────────────────────────────────────────
-#  Tests : est_bloquee
-# ──────────────────────────────────────────────
+
 
 class TestEstBloquee:
     def test_non_bloquee_chemin_libre(self):
@@ -105,9 +93,7 @@ class TestEstBloquee:
         assert est_bloquee(plateau, [7, 4], "light") is True
 
 
-# ──────────────────────────────────────────────
-#  Tests : coups_possibles
-# ──────────────────────────────────────────────
+
 
 class TestCoupsPossibles:
     def test_plateau_vide_milieu(self):
@@ -115,23 +101,23 @@ class TestCoupsPossibles:
         poser_piece(plateau, 4, 4, "orange", "dark")
         coups = coups_possibles(plateau, [4, 4], "dark")
         destinations = [c[1] for c in coups]
-        # Vers le haut : [3,4],[2,4],[1,4],[0,4]
+        
         assert [3, 4] in destinations
         assert [0, 4] in destinations
-        # Diagonale gauche : [3,3],[2,2],[1,1],[0,0]
+        
         assert [3, 3] in destinations
-        # Diagonale droite : [3,5],[2,6],[1,7]
+        
         assert [3, 5] in destinations
 
     def test_bloque_par_piece(self):
         plateau = plateau_vide()
         poser_piece(plateau, 4, 4, "orange", "dark")
-        poser_piece(plateau, 3, 4, "red",    "light")  # bloque le chemin droit
+        poser_piece(plateau, 3, 4, "red",    "light")  
         coups = coups_possibles(plateau, [4, 4], "dark")
         destinations = [c[1] for c in coups]
-        # [3,4] est occupé → bloqué
+        
         assert [3, 4] not in destinations
-        # [2,4] non atteignable non plus
+        
         assert [2, 4] not in destinations
 
     def test_aucun_coup_si_bloquee_partout(self):
@@ -152,9 +138,7 @@ class TestCoupsPossibles:
         assert [5, 3] in destinations
 
 
-# ──────────────────────────────────────────────
-#  Tests : meilleur_coup
-# ──────────────────────────────────────────────
+
 
 class TestMeilleurCoup:
     def test_retourne_none_si_liste_vide(self):
@@ -170,13 +154,10 @@ class TestMeilleurCoup:
             [[5, 4], [1, 4]],
         ]
         coup = meilleur_coup(coups, "dark", plateau)
-        # Sans pièce adverse, l'avancement prime → ligne 1
+        
         assert coup[1][0] <= 3
 
 
-# ──────────────────────────────────────────────
-#  Tests : choose_move
-# ──────────────────────────────────────────────
 
 class TestChooseMove:
     def _state(self, plateau, couleur, current=0):

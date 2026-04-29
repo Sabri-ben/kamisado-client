@@ -9,13 +9,13 @@ MY_NAME     = "Sabri INDUSTRY"
 MATRICULES  = ["24049"]
 
 def envoyer_message(sock, data: dict):
-    """Envoie un message JSON précédé de sa taille en 4 octets."""
+    
     payload = json.dumps(data).encode("utf-8")
     taille  = struct.pack(">I", len(payload))
     sock.sendall(taille + payload)
 
 def recevoir_message(sock) -> dict:
-    """Reçoit un message JSON précédé de sa taille en 4 octets."""
+    
     taille_brute = recevoir_exact(sock, 4)
     if not taille_brute:
         raise ConnectionError("Connexion fermée par le serveur")
@@ -24,7 +24,7 @@ def recevoir_message(sock) -> dict:
     return json.loads(donnees.decode("utf-8"))
 
 def recevoir_exact(sock, n: int) -> bytes:
-    """Reçoit exactement n octets depuis le socket."""
+    
     buf = b""
     while len(buf) < n:
         morceau = sock.recv(n - len(buf))
@@ -34,11 +34,11 @@ def recevoir_exact(sock, n: int) -> bytes:
     return buf
 
 def ma_sorte(state) -> str:
-    """Retourne la sorte ('dark' ou 'light') du joueur courant."""
+    
     return "dark" if state["current"] == 0 else "light"
 
 def trouver_piece(plateau, couleur: str, sorte: str):
-    """Retourne la position [ligne, colonne] de la pièce (couleur, sorte), ou None."""
+    
     for ligne in range(8):
         for colonne in range(8):
             tuile = plateau[ligne][colonne][1]
@@ -47,7 +47,7 @@ def trouver_piece(plateau, couleur: str, sorte: str):
     return None
 
 def est_bloquee(plateau, position, sorte: str) -> bool:
-    """Retourne True si la pièce en 'position' ne peut plus avancer."""
+    
     ligne, colonne = position
     ligne_devant = ligne - 1 if sorte == "dark" else ligne + 1
     if ligne_devant < 0 or ligne_devant > 7:
@@ -58,7 +58,7 @@ def est_bloquee(plateau, position, sorte: str) -> bool:
     return True
 
 def coups_possibles(plateau, position, sorte: str) -> list:
-    """Retourne la liste de tous les coups valides pour une pièce donnée."""
+   
     ligne, colonne = position
     direction = -1 if sorte == "dark" else 1
     coups = []
@@ -74,7 +74,7 @@ def coups_possibles(plateau, position, sorte: str) -> list:
     return coups
 
 def score_coup(coup, plateau, sorte: str) -> int:
-    """Évalue un coup : avancement vers victoire moins avantage donné à l'adversaire."""
+    
     _, destination = coup
     ligne_dest, col_dest = destination
     sorte_adverse = "light" if sorte == "dark" else "dark"
@@ -88,13 +88,14 @@ def score_coup(coup, plateau, sorte: str) -> int:
     return avancement - penalite
 
 def meilleur_coup(coups: list, sorte: str, plateau) -> list:
-    """Sélectionne le coup avec le meilleur score."""
+    
     if not coups:
         return None
     return max(coups, key=lambda coup: score_coup(coup, plateau, sorte))
 
 def choose_move(state, lives: int, errors: list):
-    """Choisit le coup à jouer en fonction de l'état du jeu."""
+   
+   
     plateau = state["board"]
     couleur = state["color"]
     sorte   = ma_sorte(state)
@@ -162,4 +163,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-    
+
