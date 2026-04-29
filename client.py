@@ -2,14 +2,11 @@ import socket
 import json
 import struct
 
-# ─── CONFIG ────────────────────────────────────────────────────────────────────
-SERVER_HOST = "localhost"   # ← adresse IP du serveur du prof
-SERVER_PORT = 3000          # ← port du serveur du prof
-MY_PORT     = 8888          # ← port sur lequel TON client écoute
-MY_NAME     = "MonEquipe"   # ← nom de ton équipe
-MATRICULES  = ["12345", "67890"]  # ← vos vrais matricules
-
-# ─── COMMUNICATION ─────────────────────────────────────────────────────────────
+SERVER_HOST = "IP_DU_PROF"
+SERVER_PORT = 3000
+MY_PORT     = 8888
+MY_NAME     = "Sabri INDUSTRY"
+MATRICULES  = ["24049"]
 
 def envoyer_message(sock, data: dict):
     """Envoie un message JSON précédé de sa taille en 4 octets."""
@@ -18,16 +15,16 @@ def envoyer_message(sock, data: dict):
     sock.sendall(taille + payload)
 
 def recevoir_message(sock) -> dict:
-    """Reçoit un message JSON précédé de sa taille."""
+    """Reçoit un message JSON précédé de sa taille en 4 octets."""
     taille_brute = recevoir_exact(sock, 4)
     if not taille_brute:
         raise ConnectionError("Connexion fermée par le serveur")
-    taille = struct.unpack(">I", taille_brute)[0]
+    taille  = struct.unpack(">I", taille_brute)[0]
     donnees = recevoir_exact(sock, taille)
     return json.loads(donnees.decode("utf-8"))
 
 def recevoir_exact(sock, n: int) -> bytes:
-    """Lit exactement n octets depuis le socket."""
+    """Reçoit exactement n octets depuis le socket."""
     buf = b""
     while len(buf) < n:
         morceau = sock.recv(n - len(buf))
@@ -36,76 +33,35 @@ def recevoir_exact(sock, n: int) -> bytes:
         buf += morceau
     return buf
 
-# ─── LOGIQUE DU JEU ────────────────────────────────────────────────────────────
+def ma_sorte(state) -> str:
+    """Retourne la sorte ('dark' ou 'light') du joueur courant."""
+    return "dark" if state["current"] == 0 else "light"
 
-def trouver_piece(plateau, couleur, sorte):
-    """Trouve la position de la pièce de la couleur et sorte données."""
+def trouver_piece(plateau, couleur: str, sorte: str):
+    """Retourne la position [ligne, colonne] de la pièce (couleur, sorte), ou None."""
     for ligne in range(8):
         for colonne in range(8):
             tuile = plateau[ligne][colonne][1]
-            if tuile is not None:
-                if tuile[0] == couleur and tuile[1] == sorte:
-                    return [ligne, colonne]
+            if tuile is not None and tuile[0] == couleur and tuile[1] == sorte:
+                return [ligne, colonne]
     return None
 
-def coups_possibles(plateau, position, sorte):
-    """Trouve tous les coups possibles pour une pièce."""
+def est_bloquee(plateau, position, sorte: str) -> bool:
+    """Retourne True si la pièce en 'position' ne peut plus avancer."""
     ligne, colonne = position
-    coups = []
+    ligne_devant = ligne - 1 if sorte == "dark" else ligne + 1
+    if ligne_devant < 0 or ligne_devant > 7:
+        return True
+    for col in range(max(colonne - 1, 0), min(colonne + 2, 8)):
+        if plateau[ligne_devant][col][1] is None:
+            return False
+    return True
 
-    # Direction selon la sorte du joueur
-    if sorte == "dark":
-        direction = -1  # va vers le haut (ligne 0)
-    else:
-        direction = 1   # va vers le bas (ligne 7)
-
-    # 3 directions : tout droit, diagonale gauche, diagonale droite
-    for deplacement_col in [-1, 0, 1]:
-        nouvelle_ligne = ligne + direction
-        nouvelle_col   = colonne + deplacement_col
-
-        # On avance case par case jusqu'à un obstacle
-        while 0 <= nouvelle_ligne <= 7 and 0 <= nouvelle_col <= 7:
-            # Si la case est occupée on s'arrête
-            if plateau[nouvelle_ligne][nouvelle_col][1] is not None:
-                break
-            # Sinon c'est un coup valide
-            coups.append([position, [nouvelle_ligne, nouvelle_col]])
-            nouvelle_ligne += direction
-            nouvelle_col   += deplacement_col
-
-    return coups
-
-def meilleur_coup(coups, sorte):
-    """Choisit le coup qui avance le plus vers la ligne adverse."""
-    if not coups:
-        return None
-
-    if sorte == "dark":
-        # On veut la ligne la plus petite (aller vers 0)
-        return min(coups, key=lambda coup: coup[1][0])
-    else:
-        # On veut la ligne la plus grande (aller vers 7)
-        return max(coups, key=lambda coup: coup[1][0])
-
-def trouver_piece(plateau, couleur, sorte):
-    """Trouve la position de la pièce de la couleur et sorte données."""
-    for ligne in range(8):
-        for colonne in range(8):
-            tuile = plateau[ligne][colonne][1]
-            if tuile is not None:
-                if tuile[0] == couleur and tuile[1] == sorte:
-                    return [ligne, colonne]
-    return None
-
-def coups_possibles(plateau, position, sorte):
-    """Trouve tous les coups possibles pour une pièce."""
+def coups_possibles(plateau, position, sorte: str) -> list:
+    """Retourne la liste de tous les coups valides pour une pièce donnée."""
     ligne, colonne = position
+    direction = -1 if sorte == "dark" else 1
     coups = []
-    if sorte == "dark":
-        direction = -1  # va vers le haut
-    else:
-        direction = 1   # va vers le bas
     for deplacement_col in [-1, 0, 1]:
         nouvelle_ligne = ligne + direction
         nouvelle_col   = colonne + deplacement_col
@@ -117,83 +73,79 @@ def coups_possibles(plateau, position, sorte):
             nouvelle_col   += deplacement_col
     return coups
 
-def meilleur_coup(coups, sorte):
-    """Choisit le coup qui avance le plus vers la ligne adverse."""
+def score_coup(coup, plateau, sorte: str) -> int:
+    """Évalue un coup : avancement vers victoire moins avantage donné à l'adversaire."""
+    _, destination = coup
+    ligne_dest, col_dest = destination
+    sorte_adverse = "light" if sorte == "dark" else "dark"
+    avancement = (7 - ligne_dest) if sorte == "dark" else ligne_dest
+    couleur_imposee = plateau[ligne_dest][col_dest][0]
+    piece_adverse   = trouver_piece(plateau, couleur_imposee, sorte_adverse)
+    penalite = 0
+    if piece_adverse is not None:
+        ligne_adverse = piece_adverse[0]
+        penalite = (7 - ligne_adverse) if sorte_adverse == "dark" else ligne_adverse
+    return avancement - penalite
+
+def meilleur_coup(coups: list, sorte: str, plateau) -> list:
+    """Sélectionne le coup avec le meilleur score."""
     if not coups:
         return None
-    if sorte == "dark":
-        return min(coups, key=lambda coup: coup[1][0])
-    else:
-        return max(coups, key=lambda coup: coup[1][0])
-    
-def choose_move(state, lives, errors):
-    """Choisit le meilleur coup à jouer."""
+    return max(coups, key=lambda coup: score_coup(coup, plateau, sorte))
+
+def choose_move(state, lives: int, errors: list):
+    """Choisit le coup à jouer en fonction de l'état du jeu."""
     plateau = state["board"]
     couleur = state["color"]
-    current = state["current"]
-
-    # Déterminer ma sorte (dark ou light)
-    if current == 0:
-        sorte = "dark"
-    else:
-        sorte = "light"
-
-    # Premier coup : couleur est null, on commence avec brown
+    sorte   = ma_sorte(state)
     if couleur is None:
-        couleur = "brown"
-
-    # Trouver la pièce à bouger
+        tous_les_coups = []
+        for ligne in range(8):
+            for colonne in range(8):
+                tuile = plateau[ligne][colonne][1]
+                if tuile is not None and tuile[1] == sorte:
+                    position = [ligne, colonne]
+                    if not est_bloquee(plateau, position, sorte):
+                        coups = coups_possibles(plateau, position, sorte)
+                        tous_les_coups.extend(coups)
+        return meilleur_coup(tous_les_coups, sorte, plateau)
     position = trouver_piece(plateau, couleur, sorte)
     if position is None:
         return None
-
-    # Calculer les coups possibles
+    if est_bloquee(plateau, position, sorte):
+        return [position, position]
     coups = coups_possibles(plateau, position, sorte)
-
-    # Choisir le meilleur coup
-    return meilleur_coup(coups, sorte)
-
-# ─── BOUCLE PRINCIPALE ─────────────────────────────────────────────────────────
+    return meilleur_coup(coups, sorte, plateau)
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         print(f"Connexion au serveur {SERVER_HOST}:{SERVER_PORT}...")
         sock.connect((SERVER_HOST, SERVER_PORT))
         print("Connecté !")
-
-        # 1. S'inscrire
         envoyer_message(sock, {
             "request":    "subscribe",
             "port":       MY_PORT,
             "name":       MY_NAME,
             "matricules": MATRICULES
         })
-
         reponse = recevoir_message(sock)
         print("Réponse inscription :", reponse)
-
         if reponse.get("response") != "ok":
             print("Erreur :", reponse.get("error"))
             return
-
-        # 2. Boucle d'écoute
         print("En attente des requêtes du serveur...")
         while True:
-            requete = recevoir_message(sock)
+            requete      = recevoir_message(sock)
             type_requete = requete.get("request")
             print(f"\n← Serveur : {requete}")
-
             if type_requete == "ping":
                 envoyer_message(sock, {"response": "pong"})
                 print("→ pong")
-
             elif type_requete == "play":
-                vies   = requete.get("lives", 3)
+                vies    = requete.get("lives", 3)
                 erreurs = requete.get("errors", [])
-                state  = requete.get("state")
-
+                state   = requete.get("state")
                 coup = choose_move(state, vies, erreurs)
-
                 if coup is None:
                     envoyer_message(sock, {"response": "giveup"})
                     print("→ giveup")
@@ -204,10 +156,10 @@ def main():
                         "message":  "Bonne chance !"
                     })
                     print(f"→ coup joué : {coup}")
-
             else:
                 print(f"Requête inconnue : {type_requete}")
 
 if __name__ == "__main__":
     main()
 
+    
