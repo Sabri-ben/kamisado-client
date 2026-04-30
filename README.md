@@ -159,7 +159,7 @@ Notre IA                          Serveur
          ... (jusqu'à la fin)
 ```
 
-
+Ps: Le schéma ci-dessus (connexion IA-Serveur) a été entièrement créé par ChatGPT pour avoir un appoche visuel afin de facilité la compréhension de la logique du serveur.
 
 Le serveur donne 3 vies par match. On perd une vie si on envoie un coup invalide. Si on perd toutes nos vies, on perd le match.
 
