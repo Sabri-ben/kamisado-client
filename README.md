@@ -108,7 +108,7 @@ Ces deux critères combinés donnent un avantage systématique sur une IA aléat
 projet IA BA2/
 │
 ├── client.py          ← Script principal : toute la logique de l'IA
-├── test_client.py     ← Tests automatiques (24 tests, couverture 63%)
+├── test_client.py     ← Tests automatiques (20 tests, couverture 63%)
 └── README.md          ← Ce fichier de documentation
 
 
