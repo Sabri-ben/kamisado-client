@@ -15,11 +15,11 @@ Table des matières de ce README: -Qu'est-ce que Kamisado?
 
 Kamisado est un jeu de stratégie qui se joue entre 2 joueurs sur un plateau de 8 lignes X 8 colonnes, dont chaque case a une couleur précisé parmi les 8 couleurs posssible: orange,bleu,violet,rose,rouge,jaune,vert et marron.
 
-Chaque joueur contrôle de 8 pièces (une chaque couleur), placées sur la derni!re rangée de son côté du plateau au début de la partie.
+Chaque joueur contrôle de 8 pièces (une chaque couleur), placées sur la dernière rangée de son côté du plateau au début de la partie.
 
 Le joueur "dark", ses pièces sont noires. Il commence en ligne 7(bas) et doit atteindre la ligne 6 (haut)
 
-Le joueur "ligt",ses pièces sont blanches. Il commence en ligne 0 (haut) et doit atteindre la ligne 7 (bas).
+Le joueur "light",ses pièces sont blanches. Il commence en ligne 0 (haut) et doit atteindre la ligne 7 (bas).
 
 Une pièce peut avancer dans 3 directions uniquement vers l'avant:
 -Tout droit: dans la même colonne
@@ -108,7 +108,7 @@ Ces deux critères combinés donnent un avantage systématique sur une IA aléat
 projet IA BA2/
 │
 ├── client.py          ← Script principal : toute la logique de l'IA
-├── test_client.py     ← Tests automatiques (20 tests, couverture 63%)
+├── test_client.py     ← Tests automatiques (24 tests, couverture 63%)
 └── README.md          ← Ce fichier de documentation
 
 
