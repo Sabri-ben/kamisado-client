@@ -1,6 +1,6 @@
 1.Présentation du projet:
 
-Ce projet a été réalisé dans le cadre du cours de l'UE "Projet Informatique".
+Ce projet a été réalisé par Sabri Ben Yahya (24049) et Abdelouadod Kerrou (24177) dans le cadre du cours de l'UE "Projet Informatique".
 L'objectif est de de ce projet créer une IA capable de jouer au jeu "Kamisado" .
 
 Table des matières de ce README: -Qu'est-ce que Kamisado?
