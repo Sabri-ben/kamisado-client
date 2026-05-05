@@ -6,8 +6,8 @@ import threading
 SERVER_HOST = "IP_DU_PROF"
 SERVER_PORT = 3000
 MY_PORT     = 8888
-MY_NAME     = "Sabri INDUSTRY"
-MATRICULES  = ["24049"]
+MY_NAME     = "KROUX"
+MATRICULES  = ["24049","24177"]
 
 def envoyer_message(sock, data: dict):
     
