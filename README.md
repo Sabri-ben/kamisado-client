@@ -170,7 +170,7 @@ SERVER_HOST = "IP_DU_PROF"     # Adresse IP du serveur
 SERVER_PORT = 3000              # Port du serveur
 MY_PORT     = 8888              # Port d'écoute de notre IA
 MY_NAME     = "Kroux" # Nom dans le championnat
-MATRICULES  = ["24049"] ["24177        # Matricules étudiants
+MATRICULES  = ["24049"] ["24177"]        # Matricules étudiants
 ```
 
 Pourquoi faire des tests?
