@@ -3,7 +3,7 @@ import json
 import struct
 import threading
 
-SERVER_HOST = "IP_DU_PROF"
+SERVER_HOST = "172.17.10.46"
 SERVER_PORT = 3000
 MY_PORT     = 8888
 MY_NAME     = "KROUX"
